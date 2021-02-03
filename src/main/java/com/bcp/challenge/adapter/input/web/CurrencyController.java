@@ -8,6 +8,7 @@ import io.reactivex.Observable;
 import io.reactivex.Scheduler;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Created on 3/02/21.
  */
 
+@Slf4j
 @RestController
 @RequestMapping("${application.currency.url}")
 public class CurrencyController {
@@ -31,6 +33,7 @@ public class CurrencyController {
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public Observable<ResponseEntity<CurrencyWebResponse>> findAll(){
+        log.info("Init CurrencyController.findAll");
         return currencyUseCase.findAll()
                 .map(currencyResponse -> CurrencyWebResponse
                         .builder()
@@ -38,11 +41,13 @@ public class CurrencyController {
                         .build())
                 .map(currencyWebResponse ->
                         ResponseEntity.ok(currencyWebResponse))
-                .subscribeOn(Schedulers.io());
+                .subscribeOn(Schedulers.io())
+                .doOnError(throwable -> log.error(throwable.getMessage()));
     }
 
     @RequestMapping(value = "/convert", method = RequestMethod.POST)
     public Single<ResponseEntity<CurrencyConverterWebResponse>> convert(@RequestBody CurrencyConverterWebRequest currencyConverterRequest) {
+        log.info("Init CurrencyController.convert");
         return currencyUseCase.convert(currencyConverterRequest.getAmount(),
                 currencyConverterRequest.getCurrencyFrom(),
                 currencyConverterRequest.getCurrencyTo())
@@ -57,6 +62,7 @@ public class CurrencyController {
                             .build())
                 .map(currencyConverterWebResponse ->
                         ResponseEntity.ok(currencyConverterWebResponse))
-                .subscribeOn(Schedulers.io());
+                .subscribeOn(Schedulers.io())
+                .doOnError(throwable -> log.error(throwable.getMessage()));
     }
 }

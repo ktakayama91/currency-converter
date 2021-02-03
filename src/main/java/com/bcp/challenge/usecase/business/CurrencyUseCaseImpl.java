@@ -38,6 +38,11 @@ public class CurrencyUseCaseImpl implements CurrencyUseCase {
 
     @Override
     public Single<CurrencyConverterResponse> convert(Double amount, String currencyNameFrom, String currencyNameTo) {
+
+        if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
+            throw new IllegalArgumentException("Both currencies are equals.");
+        }
+
         CurrencyModel currencyFrom = currencyRepositoryPort.findCurrencyByName(currencyNameFrom);
         CurrencyModel currencyTo = currencyRepositoryPort.findCurrencyByName(currencyNameTo);
 

@@ -1,5 +1,7 @@
 package com.bcp.challenge.adapter.output;
 
+import javax.persistence.EntityNotFoundException;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -35,17 +37,20 @@ public class ExchangeRepositoryAdapter implements ExchangeRepositoryPort {
 
     @Override
     public ExchangeModel findExchangeRateByCurrencyName(CurrencyModel currencyFrom, CurrencyModel currencyTo) {
-
         List<Exchange> exchanges = exchangeJpaRepository.findExchangeByCurrencyFromAndCurrencyTo(
                 toCurrency(currencyFrom),
                 toCurrency(currencyTo));
 
-        Exchange exchange = exchanges.stream()
-                .sorted((e1,e2) -> e2.getCreatedOn().compareTo(e1.getCreatedOn()))
-                .findFirst()
-                .get();
+        if (exchanges.isEmpty()) {
+            throw new EntityNotFoundException("Exchange Rate not found");
+        } else {
+            Exchange exchange = exchanges.stream()
+                    .sorted((e1,e2) -> e2.getCreatedOn().compareTo(e1.getCreatedOn()))
+                    .findFirst()
+                    .get();
 
-        return toExchangeModel(exchange);
+            return toExchangeModel(exchange);
+        }
     }
 
     private Currency toCurrency(CurrencyModel currencyModel) {

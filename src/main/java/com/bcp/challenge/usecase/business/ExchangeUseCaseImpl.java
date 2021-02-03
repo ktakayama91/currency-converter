@@ -22,6 +22,10 @@ public class ExchangeUseCaseImpl implements ExchangeUseCase {
 
     @Override
     public Single<ExchangeResponse> updateExchange(Double rate, String currencyNameFrom, String currencyNameTo) {
+        if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
+            throw new IllegalArgumentException("Both currencies are equals.");
+        }
+
         CurrencyModel currencyFrom = currencyRepositoryPort.findCurrencyByName(currencyNameFrom);
         CurrencyModel currencyTo = currencyRepositoryPort.findCurrencyByName(currencyNameTo);
 
