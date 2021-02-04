@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.bcp.challenge.domain.CurrencyModel;
 import com.bcp.challenge.domain.ExchangeModel;
+import com.bcp.challenge.usecase.business.exceptions.CurrencyConverterException;
 import com.bcp.challenge.usecase.business.response.CurrencyConverterResponse;
 import com.bcp.challenge.usecase.business.response.CurrencyResponse;
 import com.bcp.challenge.usecase.port.output.CurrencyRepositoryPort;
@@ -118,10 +119,10 @@ class CurrencyUseCaseImplTest {
     }
 
     @Test
-    public void convertTest_whenIllegalArgumentException() {
+    public void convertTest_whenCurrencyConverterException() {
         String currencyFrom = "USD";
         String currencyTo = "USD";
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(CurrencyConverterException.class,
                 () -> currencyUseCase.convert(100.00, currencyFrom, currencyTo));
     }
 

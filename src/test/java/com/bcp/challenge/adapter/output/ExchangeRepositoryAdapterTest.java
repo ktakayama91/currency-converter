@@ -13,6 +13,7 @@ import com.bcp.challenge.adapter.output.repository.entity.Currency;
 import com.bcp.challenge.adapter.output.repository.entity.Exchange;
 import com.bcp.challenge.domain.CurrencyModel;
 import com.bcp.challenge.domain.ExchangeModel;
+import com.bcp.challenge.usecase.business.exceptions.ExchangeNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -87,11 +88,11 @@ class ExchangeRepositoryAdapterTest {
     }
 
     @Test
-    public void findExchangeRateByCurrencyName_whenEntityNotFoundException() {
+    public void findExchangeRateByCurrencyName_whenExchangeNotFoundException() {
         Mockito.when(exchangeJpaRepository.findExchangeByCurrencyFromAndCurrencyTo(Mockito.any(), Mockito.any()))
                 .thenReturn(Arrays.asList());
         CurrencyModel currencyModel = CurrencyModel.builder().build();
-        assertThrows(EntityNotFoundException.class,
+        assertThrows(ExchangeNotFoundException.class,
                 () -> exchangeRepositoryAdapter.findExchangeRateByCurrencyName(currencyModel, currencyModel));
     }
 

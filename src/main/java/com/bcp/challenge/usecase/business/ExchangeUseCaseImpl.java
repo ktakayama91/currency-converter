@@ -2,6 +2,7 @@ package com.bcp.challenge.usecase.business;
 
 import com.bcp.challenge.domain.CurrencyModel;
 import com.bcp.challenge.domain.ExchangeModel;
+import com.bcp.challenge.usecase.business.exceptions.CurrencyConverterException;
 import com.bcp.challenge.usecase.business.response.ExchangeResponse;
 import com.bcp.challenge.usecase.port.input.ExchangeUseCase;
 import com.bcp.challenge.usecase.port.output.CurrencyRepositoryPort;
@@ -23,7 +24,7 @@ public class ExchangeUseCaseImpl implements ExchangeUseCase {
     @Override
     public Single<ExchangeResponse> updateExchange(Double rate, String currencyNameFrom, String currencyNameTo) {
         if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
-            throw new IllegalArgumentException("Both currencies are equals.");
+            throw new CurrencyConverterException("Both currencies are equals.");
         }
 
         CurrencyModel currencyFrom = currencyRepositoryPort.findCurrencyByName(currencyNameFrom);

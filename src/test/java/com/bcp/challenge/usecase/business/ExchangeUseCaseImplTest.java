@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.bcp.challenge.domain.CurrencyModel;
 import com.bcp.challenge.domain.ExchangeModel;
+import com.bcp.challenge.usecase.business.exceptions.CurrencyConverterException;
 import com.bcp.challenge.usecase.business.response.ExchangeResponse;
 import com.bcp.challenge.usecase.port.output.CurrencyRepositoryPort;
 import com.bcp.challenge.usecase.port.output.ExchangeRepositoryPort;
@@ -72,10 +73,10 @@ class ExchangeUseCaseImplTest {
     }
 
     @Test
-    public void updateExchangeTest_whenIllegalArgumentException() {
+    public void updateExchangeTest_whenCurrencyConverterException() {
         String currencyFrom = "USD";
         String currencyTo = "USD";
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(CurrencyConverterException.class,
                 () -> exchangeUseCase.updateExchange(1.00, currencyFrom, currencyTo));
     }
 

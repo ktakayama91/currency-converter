@@ -10,6 +10,7 @@ import java.util.List;
 import com.bcp.challenge.adapter.output.repository.CurrencyJpaRepository;
 import com.bcp.challenge.adapter.output.repository.entity.Currency;
 import com.bcp.challenge.domain.CurrencyModel;
+import com.bcp.challenge.usecase.business.exceptions.CurrencyNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -65,11 +66,11 @@ class CurrencyRepositoryAdapterTest {
     }
 
     @Test
-    public void findCurrencyTest_whenEntityNotFoundException() {
+    public void findCurrencyTest_whenCurrencyNotFoundException() {
         Mockito.when(currencyJpaRepository.findCurrencyByName(Mockito.anyString()))
                 .thenReturn(null);
 
-        assertThrows(EntityNotFoundException.class,
+        assertThrows(CurrencyNotFoundException.class,
                 () -> currencyRepositoryAdapter.findCurrencyByName("YEN"));
     }
 

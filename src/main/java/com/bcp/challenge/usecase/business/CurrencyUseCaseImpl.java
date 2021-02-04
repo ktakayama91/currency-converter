@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.bcp.challenge.domain.CurrencyModel;
 import com.bcp.challenge.domain.ExchangeModel;
+import com.bcp.challenge.usecase.business.exceptions.CurrencyConverterException;
 import com.bcp.challenge.usecase.business.response.CurrencyConverterResponse;
 import com.bcp.challenge.usecase.business.response.CurrencyResponse;
 import com.bcp.challenge.usecase.port.input.CurrencyUseCase;
@@ -40,7 +41,7 @@ public class CurrencyUseCaseImpl implements CurrencyUseCase {
     public Single<CurrencyConverterResponse> convert(Double amount, String currencyNameFrom, String currencyNameTo) {
 
         if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
-            throw new IllegalArgumentException("Both currencies are equals.");
+            throw new CurrencyConverterException("Both currencies are equals.");
         }
 
         CurrencyModel currencyFrom = currencyRepositoryPort.findCurrencyByName(currencyNameFrom);

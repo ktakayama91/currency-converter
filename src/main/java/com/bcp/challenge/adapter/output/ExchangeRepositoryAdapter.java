@@ -10,6 +10,7 @@ import com.bcp.challenge.adapter.output.repository.entity.Currency;
 import com.bcp.challenge.adapter.output.repository.entity.Exchange;
 import com.bcp.challenge.domain.CurrencyModel;
 import com.bcp.challenge.domain.ExchangeModel;
+import com.bcp.challenge.usecase.business.exceptions.ExchangeNotFoundException;
 import com.bcp.challenge.usecase.port.output.ExchangeRepositoryPort;
 import lombok.Builder;
 
@@ -42,7 +43,7 @@ public class ExchangeRepositoryAdapter implements ExchangeRepositoryPort {
                 toCurrency(currencyTo));
 
         if (exchanges.isEmpty()) {
-            throw new EntityNotFoundException("Exchange Rate not found");
+            throw new ExchangeNotFoundException("Exchange Rate not found");
         } else {
             Exchange exchange = exchanges.stream()
                     .sorted((e1,e2) -> e2.getCreatedOn().compareTo(e1.getCreatedOn()))

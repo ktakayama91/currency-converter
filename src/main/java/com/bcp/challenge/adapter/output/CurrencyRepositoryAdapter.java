@@ -1,14 +1,12 @@
 package com.bcp.challenge.adapter.output;
 
-import javax.persistence.EntityNotFoundException;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import com.bcp.challenge.adapter.output.repository.CurrencyJpaRepository;
 import com.bcp.challenge.adapter.output.repository.entity.Currency;
 import com.bcp.challenge.domain.CurrencyModel;
+import com.bcp.challenge.usecase.business.exceptions.CurrencyNotFoundException;
 import com.bcp.challenge.usecase.port.output.CurrencyRepositoryPort;
-import javassist.NotFoundException;
 import lombok.Builder;
 
 /**
@@ -41,7 +39,7 @@ public class CurrencyRepositoryAdapter implements CurrencyRepositoryPort {
         if (currency != null) {
             return toCurrencyModel(currency);
         } else {
-            throw new EntityNotFoundException("Currency not found");
+            throw new CurrencyNotFoundException("Currency not found");
         }
     }
 
