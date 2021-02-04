@@ -15,7 +15,7 @@ import lombok.Builder;
 
 /**
  * @author Kei Takayama
- * Created on 2/02/21.
+ * Created on 3/02/21.
  */
 @Builder
 public class ExchangeRepositoryAdapter implements ExchangeRepositoryPort {
