@@ -46,8 +46,4 @@ public class CurrencyConverterControllerAdvice {
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(baseError);
     }
-
-
-
-
 }
