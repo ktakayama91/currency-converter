@@ -1,7 +1,5 @@
 package com.bcp.challenge.usecase.business;
 
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -123,10 +121,8 @@ class CurrencyUseCaseImplTest {
     public void convertTest_whenIllegalArgumentException() {
         String currencyFrom = "USD";
         String currencyTo = "USD";
-
         assertThrows(IllegalArgumentException.class,
                 () -> currencyUseCase.convert(100.00, currencyFrom, currencyTo));
-
     }
 
 }
