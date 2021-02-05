@@ -4,7 +4,6 @@ import static com.bcp.challenge.application.authorization.config.SecurityConstan
 import static com.bcp.challenge.application.authorization.config.SecurityConstants.KEY;
 
 import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 

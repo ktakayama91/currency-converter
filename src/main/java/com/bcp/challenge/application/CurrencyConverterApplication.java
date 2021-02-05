@@ -14,8 +14,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 		"com.bcp.challenge.adapter.output.repository.entity",
 		"com.bcp.challenge.application.authorization.repository.entity"})
 @EnableJpaRepositories(basePackages = {
-		"com.bcp.challenge.adapter.output.repository",
-		"com.bcp.challenge.application.authorization.repository"})
+		"com.bcp.challenge.adapter.output.repository"})
 public class CurrencyConverterApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(CurrencyConverterApplication.class, args);

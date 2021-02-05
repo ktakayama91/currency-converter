@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * @author Kei Takayama
- * Created on 2/02/21.
+ * Created on 3/02/21.
  */
 public interface ExchangeJpaRepository extends JpaRepository<Exchange, Long> {
     List<Exchange> findExchangeByCurrencyFromAndCurrencyTo(Currency currencyFrom, Currency currencyTo);

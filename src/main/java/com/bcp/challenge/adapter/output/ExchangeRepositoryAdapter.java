@@ -1,7 +1,5 @@
 package com.bcp.challenge.adapter.output;
 
-import javax.persistence.EntityNotFoundException;
-
 import java.time.LocalDateTime;
 import java.util.List;
 

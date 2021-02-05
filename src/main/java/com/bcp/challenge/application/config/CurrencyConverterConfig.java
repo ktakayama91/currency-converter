@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Kei Takayama
- * Created on 2/02/21.
+ * Created on 3/02/21.
  */
 
 @Configuration
