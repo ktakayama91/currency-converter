@@ -5,7 +5,6 @@ import com.bcp.challenge.adapter.input.web.response.CurrencyConverterWebResponse
 import com.bcp.challenge.adapter.input.web.response.CurrencyWebResponse;
 import com.bcp.challenge.usecase.port.input.CurrencyUseCase;
 import io.reactivex.Observable;
-import io.reactivex.Scheduler;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
