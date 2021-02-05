@@ -1,6 +1,5 @@
 package com.bcp.challenge.usecase.business;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
@@ -53,7 +52,7 @@ class CurrencyUseCaseImplTest {
                 .build();
 
         List<CurrencyModel> currencyModelList = Arrays.asList(currencyModelPEN, currencyModelUSD);
-        Mockito.when(currencyRepositoryPort.findAll()).thenReturn(currencyModelList);
+        Mockito.when(currencyRepositoryPort.findAll()).thenReturn(Observable.fromIterable(currencyModelList));
 
         Observable<CurrencyResponse> observable = currencyUseCase.findAll();
 
@@ -68,7 +67,7 @@ class CurrencyUseCaseImplTest {
     @Test
     public void findAllEmptyTest() {
         List<CurrencyModel> currencyModelList = Arrays.asList();
-        Mockito.when(currencyRepositoryPort.findAll()).thenReturn(currencyModelList);
+        Mockito.when(currencyRepositoryPort.findAll()).thenReturn(Observable.fromIterable(currencyModelList));
         Observable<CurrencyResponse> observable = currencyUseCase.findAll();
 
         TestObserver<CurrencyResponse> testObserver = new TestObserver<>();
@@ -95,8 +94,10 @@ class CurrencyUseCaseImplTest {
                 .name("USD")
                 .build();
 
-        Mockito.when(currencyRepositoryPort.findCurrencyByName(currencyFrom)).thenReturn(currencyModelUSD);
-        Mockito.when(currencyRepositoryPort.findCurrencyByName(currencyTo)).thenReturn(currencyModelPEN);
+        Mockito.when(currencyRepositoryPort.findCurrencyByName(currencyFrom))
+                .thenReturn(Single.just(currencyModelUSD));
+        Mockito.when(currencyRepositoryPort.findCurrencyByName(currencyTo))
+                .thenReturn(Single.just(currencyModelPEN));
 
         ExchangeModel exchangeModel = ExchangeModel
                 .builder()
@@ -106,16 +107,22 @@ class CurrencyUseCaseImplTest {
                 .build();
 
         Mockito.when(exchangeRepositoryPort.findExchangeRateByCurrencyName(currencyModelUSD,
-                currencyModelPEN)).thenReturn(exchangeModel);
+                currencyModelPEN)).thenReturn(Single.just(exchangeModel));
 
         TestObserver<CurrencyConverterResponse> observer = new TestObserver();
-        Single<CurrencyConverterResponse> single = currencyUseCase.convert(100.00, currencyFrom, currencyTo);
+        currencyUseCase.convert(100.00, currencyFrom, currencyTo)
+                .subscribe(observer);
 
-        single.subscribe(observer);
+
         observer.assertValueCount(1);
-
-        CurrencyConverterResponse currencyConverterResponse = observer.values().get(0);
-        assertEquals(currencyConverterResponse.getExchangeAmount(),364.00);
+        observer.assertValue(currencyConverterResponse ->
+                currencyConverterResponse.getCurrencyTo().equalsIgnoreCase("PEN"));
+        observer.assertValue(currencyConverterResponse ->
+                currencyConverterResponse.getCurrencyFrom().equalsIgnoreCase("USD"));
+        observer.assertValue(currencyConverterResponse ->
+                currencyConverterResponse.getCurrencyTo().equalsIgnoreCase("PEN"));
+        observer.assertValue(currencyConverterResponse ->
+                currencyConverterResponse.getRate() == 3.64);
     }
 
     @Test
@@ -123,11 +130,7 @@ class CurrencyUseCaseImplTest {
         String currencyFrom = "USD";
         String currencyTo = "USD";
 
-        TestObserver<CurrencyConverterResponse> observer = new TestObserver();
-        currencyUseCase.convert(100.00, currencyFrom, currencyTo)
-                .subscribe(observer);
-
-        observer.assertError(CurrencyConverterException.class);
-        observer.assertError(throwable -> throwable.getMessage().equalsIgnoreCase("Both currencies are equals."));
+        assertThrows(CurrencyConverterException.class,
+                () -> currencyUseCase.convert(100.00, currencyFrom, currencyTo));
     }
 }

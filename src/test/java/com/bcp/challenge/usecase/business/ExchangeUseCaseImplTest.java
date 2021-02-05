@@ -50,8 +50,10 @@ class ExchangeUseCaseImplTest {
                 .name("USD")
                 .build();
 
-        Mockito.when(currencyRepositoryPort.findCurrencyByName(currencyFrom)).thenReturn(currencyModelUSD);
-        Mockito.when(currencyRepositoryPort.findCurrencyByName(currencyTo)).thenReturn(currencyModelPEN);
+        Mockito.when(currencyRepositoryPort.findCurrencyByName(currencyFrom))
+                .thenReturn(Single.just(currencyModelUSD));
+        Mockito.when(currencyRepositoryPort.findCurrencyByName(currencyTo))
+                .thenReturn(Single.just(currencyModelPEN));
 
         ExchangeModel exchangeModel = ExchangeModel
                 .builder()
@@ -61,15 +63,18 @@ class ExchangeUseCaseImplTest {
                 .build();
 
         Mockito.when(exchangeRepositoryPort.addExchangeRate(Mockito.any(),Mockito.any(),Mockito.anyDouble()))
-                .thenReturn(exchangeModel);
+                .thenReturn(Single.just(exchangeModel));
 
         TestObserver<ExchangeResponse> observer = new TestObserver();
-        Single<ExchangeResponse> single = exchangeUseCase.updateExchange(1.00, currencyFrom, currencyTo);
+        exchangeUseCase.updateExchange(1.00, currencyFrom, currencyTo)
+                .subscribe(observer);
 
-        single.subscribe(observer);
-        observer.assertValueCount(1);
-        ExchangeResponse response = observer.values().get(0);
-        assertEquals(response.getRate(), 1.00);
+        observer.assertValue(exchangeResponse ->
+                exchangeResponse.getRate() == 1.00);
+        observer.assertValue(exchangeResponse ->
+                exchangeResponse.getCurrencyFrom().equalsIgnoreCase("USD"));
+        observer.assertValue(exchangeResponse ->
+                exchangeResponse.getCurrencyTo().equalsIgnoreCase("PEN"));
     }
 
     @Test
@@ -77,12 +82,8 @@ class ExchangeUseCaseImplTest {
         String currencyFrom = "USD";
         String currencyTo = "USD";
 
-        TestObserver<ExchangeResponse> observer = new TestObserver();
-        exchangeUseCase.updateExchange(1.00, currencyFrom, currencyTo)
-                .subscribe(observer);
-
-        observer.assertError(CurrencyConverterException.class);
-        observer.assertError(throwable -> throwable.getMessage().equalsIgnoreCase("Both currencies are equals."));
+        assertThrows(CurrencyConverterException.class,
+                () -> exchangeUseCase.updateExchange(1.00, currencyFrom, currencyTo));
     }
 
 }

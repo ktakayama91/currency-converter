@@ -14,6 +14,7 @@ import com.bcp.challenge.adapter.output.repository.entity.Exchange;
 import com.bcp.challenge.domain.CurrencyModel;
 import com.bcp.challenge.domain.ExchangeModel;
 import com.bcp.challenge.usecase.business.exceptions.ExchangeNotFoundException;
+import io.reactivex.observers.TestObserver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -78,22 +79,32 @@ class ExchangeRepositoryAdapterTest {
                 .id(2L)
                 .name("USD")
                 .build();
-        ExchangeModel exchangeModel = exchangeRepositoryAdapter.findExchangeRateByCurrencyName(currencyModelUSD,currencyModelPEN);
 
-        assertNotNull(exchangeModel);
-        assertEquals("USD", exchangeModel.getFrom().getName());
-        assertEquals("PEN", exchangeModel.getTo().getName());
-        assertEquals(3.65, exchangeModel.getRate());
+        TestObserver<ExchangeModel> observer = new TestObserver();
 
+        exchangeRepositoryAdapter.findExchangeRateByCurrencyName(currencyModelUSD,currencyModelPEN)
+                .subscribe(observer);
+
+        observer.assertValue(exchangeModel ->
+                exchangeModel.getFrom().getName().equalsIgnoreCase("USD"));
+        observer.assertValue(exchangeModel ->
+                exchangeModel.getTo().getName().equalsIgnoreCase("PEN"));
+        observer.assertValue(exchangeModel ->
+                exchangeModel.getRate() == 3.65);
     }
 
     @Test
     public void findExchangeRateByCurrencyName_whenExchangeNotFoundException() {
         Mockito.when(exchangeJpaRepository.findExchangeByCurrencyFromAndCurrencyTo(Mockito.any(), Mockito.any()))
                 .thenReturn(Arrays.asList());
+
+        TestObserver<ExchangeModel> testObserver = new TestObserver<>();
         CurrencyModel currencyModel = CurrencyModel.builder().build();
-        assertThrows(ExchangeNotFoundException.class,
-                () -> exchangeRepositoryAdapter.findExchangeRateByCurrencyName(currencyModel, currencyModel));
+        exchangeRepositoryAdapter.findExchangeRateByCurrencyName(currencyModel, currencyModel)
+                .subscribe(testObserver);
+
+        testObserver.assertError(ExchangeNotFoundException.class);
+        testObserver.assertErrorMessage("Exchange Rate not found");
     }
 
 }

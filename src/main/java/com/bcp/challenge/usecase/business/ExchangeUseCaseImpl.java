@@ -1,7 +1,5 @@
 package com.bcp.challenge.usecase.business;
 
-import com.bcp.challenge.domain.CurrencyModel;
-import com.bcp.challenge.domain.ExchangeModel;
 import com.bcp.challenge.usecase.business.exceptions.CurrencyConverterException;
 import com.bcp.challenge.usecase.business.response.ExchangeResponse;
 import com.bcp.challenge.usecase.port.input.ExchangeUseCase;
@@ -23,24 +21,18 @@ public class ExchangeUseCaseImpl implements ExchangeUseCase {
 
     @Override
     public Single<ExchangeResponse> updateExchange(Double rate, String currencyNameFrom, String currencyNameTo) {
-        return Single.create(singleEmitter -> {
-            if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
-                singleEmitter.onError(new CurrencyConverterException("Both currencies are equals."));
-            } else {
-                CurrencyModel currencyFrom = currencyRepositoryPort.findCurrencyByName(currencyNameFrom);
-                CurrencyModel currencyTo = currencyRepositoryPort.findCurrencyByName(currencyNameTo);
-
-                ExchangeModel exchangeModel = exchangeRepositoryPort.addExchangeRate(currencyFrom, currencyTo, rate);
-
-                ExchangeResponse exchangeResponse =
-                        ExchangeResponse
-                                .builder()
-                                .currencyFrom(exchangeModel.getFrom().getName())
-                                .currencyTo(exchangeModel.getTo().getName())
-                                .rate(exchangeModel.getRate())
-                                .build();
-                singleEmitter.onSuccess(exchangeResponse);
-            }
-        });
+        if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
+            throw new CurrencyConverterException("Both currencies are equals.");
+        } else {
+            return currencyRepositoryPort.findCurrencyByName(currencyNameFrom)
+                    .flatMap(currencyModelFrom -> currencyRepositoryPort.findCurrencyByName(currencyNameTo)
+                            .flatMap(currencyModelTo -> exchangeRepositoryPort.addExchangeRate(currencyModelFrom, currencyModelTo, rate)))
+                    .map(exchangeModel -> ExchangeResponse
+                            .builder()
+                            .currencyFrom(exchangeModel.getFrom().getName())
+                            .currencyTo(exchangeModel.getTo().getName())
+                            .rate(exchangeModel.getRate())
+                            .build());
+        }
     }
 }

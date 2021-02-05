@@ -10,6 +10,7 @@ import com.bcp.challenge.domain.CurrencyModel;
 import com.bcp.challenge.domain.ExchangeModel;
 import com.bcp.challenge.usecase.business.exceptions.ExchangeNotFoundException;
 import com.bcp.challenge.usecase.port.output.ExchangeRepositoryPort;
+import io.reactivex.Single;
 import lombok.Builder;
 
 /**
@@ -22,34 +23,36 @@ public class ExchangeRepositoryAdapter implements ExchangeRepositoryPort {
     private final ExchangeJpaRepository exchangeJpaRepository;
 
     @Override
-    public ExchangeModel addExchangeRate(CurrencyModel currencyFrom, CurrencyModel currencyTo, Double rate) {
-        Exchange exchange = Exchange
-                .builder()
-                .currencyFrom(toCurrency(currencyFrom))
-                .currencyTo(toCurrency(currencyTo))
-                .rate(rate)
-                .createdOn(LocalDateTime.now())
-                .build();
-
-        return toExchangeModel(exchangeJpaRepository.save(exchange));
+    public Single<ExchangeModel> addExchangeRate(CurrencyModel currencyFrom, CurrencyModel currencyTo, Double rate) {
+        return Single.create(singleEmitter -> {
+            Exchange exchange = Exchange
+                    .builder()
+                    .currencyFrom(toCurrency(currencyFrom))
+                    .currencyTo(toCurrency(currencyTo))
+                    .rate(rate)
+                    .createdOn(LocalDateTime.now())
+                    .build();
+            singleEmitter.onSuccess(toExchangeModel(exchangeJpaRepository.save(exchange)));
+        });
     }
 
     @Override
-    public ExchangeModel findExchangeRateByCurrencyName(CurrencyModel currencyFrom, CurrencyModel currencyTo) {
-        List<Exchange> exchanges = exchangeJpaRepository.findExchangeByCurrencyFromAndCurrencyTo(
-                toCurrency(currencyFrom),
-                toCurrency(currencyTo));
+    public Single<ExchangeModel> findExchangeRateByCurrencyName(CurrencyModel currencyFrom, CurrencyModel currencyTo) {
+        return Single.create(singleEmitter -> {
+            List<Exchange> exchanges = exchangeJpaRepository.findExchangeByCurrencyFromAndCurrencyTo(
+                    toCurrency(currencyFrom),
+                    toCurrency(currencyTo));
 
-        if (exchanges.isEmpty()) {
-            throw new ExchangeNotFoundException("Exchange Rate not found");
-        } else {
-            Exchange exchange = exchanges.stream()
-                    .sorted((e1,e2) -> e2.getCreatedOn().compareTo(e1.getCreatedOn()))
-                    .findFirst()
-                    .get();
-
-            return toExchangeModel(exchange);
-        }
+            if (exchanges.isEmpty()) {
+                singleEmitter.onError(new ExchangeNotFoundException("Exchange Rate not found"));
+            } else {
+                Exchange exchange = exchanges.stream()
+                        .sorted((e1, e2) -> e2.getCreatedOn().compareTo(e1.getCreatedOn()))
+                        .findFirst()
+                        .get();
+                singleEmitter.onSuccess(this.toExchangeModel(exchange));
+            }
+        });
     }
 
     private Currency toCurrency(CurrencyModel currencyModel) {

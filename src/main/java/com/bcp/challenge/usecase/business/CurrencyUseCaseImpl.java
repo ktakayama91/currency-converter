@@ -1,10 +1,5 @@
 package com.bcp.challenge.usecase.business;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.bcp.challenge.domain.CurrencyModel;
-import com.bcp.challenge.domain.ExchangeModel;
 import com.bcp.challenge.usecase.business.exceptions.CurrencyConverterException;
 import com.bcp.challenge.usecase.business.response.CurrencyConverterResponse;
 import com.bcp.challenge.usecase.business.response.CurrencyResponse;
@@ -27,38 +22,30 @@ public class CurrencyUseCaseImpl implements CurrencyUseCase {
 
     @Override
     public Observable<CurrencyResponse> findAll() {
-        List<CurrencyModel> currencyModelList = currencyRepositoryPort.findAll();
-        List<CurrencyResponse> currencyResponseList = currencyModelList.stream()
-                .map(currencyModel -> CurrencyResponse
-                        .builder()
-                        .name(currencyModel.getName())
-                        .build())
-                .collect(Collectors.toList());
-        return Observable.fromIterable(currencyResponseList);
+      return currencyRepositoryPort.findAll()
+              .map(currencyModel -> CurrencyResponse
+                      .builder()
+                      .name(currencyModel.getName())
+                      .build());
     }
 
     @Override
     public Single<CurrencyConverterResponse> convert(Double amount, String currencyNameFrom, String currencyNameTo) {
-        return Single.create(singleEmitter -> {
-            if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
-                singleEmitter.onError(new CurrencyConverterException("Both currencies are equals."));
-            } else {
-                CurrencyModel currencyFrom = currencyRepositoryPort.findCurrencyByName(currencyNameFrom);
-                CurrencyModel currencyTo = currencyRepositoryPort.findCurrencyByName(currencyNameTo);
+        if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
+            throw new CurrencyConverterException("Both currencies are equals.");
+        } else {
+            return currencyRepositoryPort.findCurrencyByName(currencyNameFrom)
+                    .flatMap(currencyModelFrom -> currencyRepositoryPort.findCurrencyByName(currencyNameTo)
+                            .flatMap(currencyModelTo -> exchangeRepositoryPort.findExchangeRateByCurrencyName(currencyModelFrom, currencyModelTo)))
+                    .map(exchangeModel -> CurrencyConverterResponse
+                            .builder()
+                            .amount(amount)
+                            .exchangeAmount(amount * exchangeModel.getRate())
+                            .currencyFrom(exchangeModel.getFrom().getName())
+                            .currencyTo(exchangeModel.getTo().getName())
+                            .rate(exchangeModel.getRate())
+                            .build());
 
-                ExchangeModel exchangeModel = exchangeRepositoryPort.findExchangeRateByCurrencyName(currencyFrom, currencyTo);
-
-                CurrencyConverterResponse currencyConverterResponse =
-                        CurrencyConverterResponse
-                                .builder()
-                                .amount(amount)
-                                .exchangeAmount(amount * exchangeModel.getRate())
-                                .currencyFrom(currencyFrom.getName())
-                                .currencyTo(currencyTo.getName())
-                                .rate(exchangeModel.getRate())
-                                .build();
-                singleEmitter.onSuccess(currencyConverterResponse);
-            }
-        });
+        }
     }
 }

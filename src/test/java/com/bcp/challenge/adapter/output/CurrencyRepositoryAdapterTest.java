@@ -9,6 +9,7 @@ import com.bcp.challenge.adapter.output.repository.CurrencyJpaRepository;
 import com.bcp.challenge.adapter.output.repository.entity.Currency;
 import com.bcp.challenge.domain.CurrencyModel;
 import com.bcp.challenge.usecase.business.exceptions.CurrencyNotFoundException;
+import io.reactivex.observers.TestObserver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -41,10 +42,13 @@ class CurrencyRepositoryAdapterTest {
         Mockito.when(currencyJpaRepository.findAll())
                 .thenReturn(currencyList);
 
-        List<CurrencyModel> currencyModelList = currencyRepositoryAdapter.findAll();
+        TestObserver<CurrencyModel> testObserver = new TestObserver<>();
+        currencyRepositoryAdapter.findAll().subscribe(testObserver);
 
-        assertEquals(1, currencyModelList.size());
-        assertEquals("PEN", currencyModelList.get(0).getName());
+        testObserver.assertValue(currencyModel ->
+                currencyModel.getId() == 1);
+        testObserver.assertValue(currencyModel ->
+                currencyModel.getName().equalsIgnoreCase("PEN"));
     }
 
     @Test
@@ -57,10 +61,13 @@ class CurrencyRepositoryAdapterTest {
         Mockito.when(currencyJpaRepository.findCurrencyByName(Mockito.anyString()))
                 .thenReturn(currency);
 
-        CurrencyModel currencyModel = currencyRepositoryAdapter.findCurrencyByName("PEN");
+        TestObserver<CurrencyModel> testObserver = new TestObserver();
 
-        assertNotNull(currencyModel);
-        assertEquals("PEN", currencyModel.getName());
+       currencyRepositoryAdapter.findCurrencyByName("PEN")
+               .subscribe(testObserver);
+
+       testObserver.assertValue(currencyModel ->
+               currencyModel.getName().equalsIgnoreCase("PEN"));
     }
 
     @Test
@@ -68,8 +75,12 @@ class CurrencyRepositoryAdapterTest {
         Mockito.when(currencyJpaRepository.findCurrencyByName(Mockito.anyString()))
                 .thenReturn(null);
 
-        assertThrows(CurrencyNotFoundException.class,
-                () -> currencyRepositoryAdapter.findCurrencyByName("YEN"));
+        TestObserver<CurrencyModel> testObserver = new TestObserver();
+        currencyRepositoryAdapter.findCurrencyByName("YEN")
+                .subscribe(testObserver);
+
+        testObserver.assertError(CurrencyNotFoundException.class);
+        testObserver.assertErrorMessage("Currency not found");
     }
 
 }
