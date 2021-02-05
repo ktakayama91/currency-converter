@@ -122,8 +122,12 @@ class CurrencyUseCaseImplTest {
     public void convertTest_whenCurrencyConverterException() {
         String currencyFrom = "USD";
         String currencyTo = "USD";
-        assertThrows(CurrencyConverterException.class,
-                () -> currencyUseCase.convert(100.00, currencyFrom, currencyTo));
-    }
 
+        TestObserver<CurrencyConverterResponse> observer = new TestObserver();
+        currencyUseCase.convert(100.00, currencyFrom, currencyTo)
+                .subscribe(observer);
+
+        observer.assertError(CurrencyConverterException.class);
+        observer.assertError(throwable -> throwable.getMessage().equalsIgnoreCase("Both currencies are equals."));
+    }
 }

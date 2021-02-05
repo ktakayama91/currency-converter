@@ -39,28 +39,26 @@ public class CurrencyUseCaseImpl implements CurrencyUseCase {
 
     @Override
     public Single<CurrencyConverterResponse> convert(Double amount, String currencyNameFrom, String currencyNameTo) {
-
-        if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
-            throw new CurrencyConverterException("Both currencies are equals.");
-        }
-
-        CurrencyModel currencyFrom = currencyRepositoryPort.findCurrencyByName(currencyNameFrom);
-        CurrencyModel currencyTo = currencyRepositoryPort.findCurrencyByName(currencyNameTo);
-
-        ExchangeModel exchangeModel = exchangeRepositoryPort.findExchangeRateByCurrencyName(currencyFrom, currencyTo);
-
         return Single.create(singleEmitter -> {
-            CurrencyConverterResponse currencyConverterResponse =
-                    CurrencyConverterResponse
-                    .builder()
-                    .amount(amount)
-                    .exchangeAmount(amount * exchangeModel.getRate())
-                    .currencyFrom(currencyFrom.getName())
-                    .currencyTo(currencyTo.getName())
-                    .rate(exchangeModel.getRate())
-                    .build();
+            if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
+                singleEmitter.onError(new CurrencyConverterException("Both currencies are equals."));
+            } else {
+                CurrencyModel currencyFrom = currencyRepositoryPort.findCurrencyByName(currencyNameFrom);
+                CurrencyModel currencyTo = currencyRepositoryPort.findCurrencyByName(currencyNameTo);
 
-            singleEmitter.onSuccess(currencyConverterResponse);
+                ExchangeModel exchangeModel = exchangeRepositoryPort.findExchangeRateByCurrencyName(currencyFrom, currencyTo);
+
+                CurrencyConverterResponse currencyConverterResponse =
+                        CurrencyConverterResponse
+                                .builder()
+                                .amount(amount)
+                                .exchangeAmount(amount * exchangeModel.getRate())
+                                .currencyFrom(currencyFrom.getName())
+                                .currencyTo(currencyTo.getName())
+                                .rate(exchangeModel.getRate())
+                                .build();
+                singleEmitter.onSuccess(currencyConverterResponse);
+            }
         });
     }
 }
