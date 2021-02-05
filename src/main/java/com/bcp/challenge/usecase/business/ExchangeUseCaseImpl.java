@@ -23,25 +23,24 @@ public class ExchangeUseCaseImpl implements ExchangeUseCase {
 
     @Override
     public Single<ExchangeResponse> updateExchange(Double rate, String currencyNameFrom, String currencyNameTo) {
-        if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
-            throw new CurrencyConverterException("Both currencies are equals.");
-        }
-
-        CurrencyModel currencyFrom = currencyRepositoryPort.findCurrencyByName(currencyNameFrom);
-        CurrencyModel currencyTo = currencyRepositoryPort.findCurrencyByName(currencyNameTo);
-
-        ExchangeModel exchangeModel = exchangeRepositoryPort.addExchangeRate(currencyFrom, currencyTo, rate);
-
         return Single.create(singleEmitter -> {
-            ExchangeResponse exchangeResponse =
-                    ExchangeResponse
-                            .builder()
-                            .currencyFrom(exchangeModel.getFrom().getName())
-                            .currencyTo(exchangeModel.getTo().getName())
-                            .rate(exchangeModel.getRate())
-                            .build();
-            singleEmitter.onSuccess(exchangeResponse);
-                }
-        );
+            if (currencyNameFrom.equalsIgnoreCase(currencyNameTo)) {
+                singleEmitter.onError(new CurrencyConverterException("Both currencies are equals."));
+            } else {
+                CurrencyModel currencyFrom = currencyRepositoryPort.findCurrencyByName(currencyNameFrom);
+                CurrencyModel currencyTo = currencyRepositoryPort.findCurrencyByName(currencyNameTo);
+
+                ExchangeModel exchangeModel = exchangeRepositoryPort.addExchangeRate(currencyFrom, currencyTo, rate);
+
+                ExchangeResponse exchangeResponse =
+                        ExchangeResponse
+                                .builder()
+                                .currencyFrom(exchangeModel.getFrom().getName())
+                                .currencyTo(exchangeModel.getTo().getName())
+                                .rate(exchangeModel.getRate())
+                                .build();
+                singleEmitter.onSuccess(exchangeResponse);
+            }
+        });
     }
 }

@@ -8,5 +8,5 @@ import io.reactivex.Single;
  * Created on 3/02/21.
  */
 public interface ExchangeUseCase {
-    Single<ExchangeResponse> updateExchange(Double rate, String currencyFrom, String currencyTo);
+    Single<ExchangeResponse> updateExchange(Double rate, String currencyNameFrom, String currencyNameTo);
 }

@@ -76,8 +76,13 @@ class ExchangeUseCaseImplTest {
     public void updateExchangeTest_whenCurrencyConverterException() {
         String currencyFrom = "USD";
         String currencyTo = "USD";
-        assertThrows(CurrencyConverterException.class,
-                () -> exchangeUseCase.updateExchange(1.00, currencyFrom, currencyTo));
+
+        TestObserver<ExchangeResponse> observer = new TestObserver();
+        exchangeUseCase.updateExchange(1.00, currencyFrom, currencyTo)
+                .subscribe(observer);
+
+        observer.assertError(CurrencyConverterException.class);
+        observer.assertError(throwable -> throwable.getMessage().equalsIgnoreCase("Both currencies are equals."));
     }
 
 }
